@@ -1,2 +1,2 @@
 # Application-Development
-Repository for Application Development fProject
+Repository for Application Development Project
