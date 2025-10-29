@@ -4,6 +4,7 @@ import '../widgets/event_card.dart';
 import '../widgets/bottom_nav.dart';
 import '../services/event_service.dart';
 import '../models/event.dart';
+import '../screens/register_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -50,7 +51,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   final event = _events[index];
                   return Padding(
                     padding: EdgeInsets.only(bottom: 12),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RegisterScreen(event: event),
+                          ),
+                        );
+                      },
                     child: EventCard(event: event),
+                    ),
                   );
                 },
               ),
