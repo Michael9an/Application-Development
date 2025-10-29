@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/events_screen.dart';
+import 'screens/clubs_screen.dart';  
+import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
 import 'utils/theme.dart';
 
@@ -21,7 +24,24 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: appProvider.themeMode,
-            home: appProvider.isLoggedIn ? HomeScreen() : LoginScreen(),
+            
+            // Remove 'home' property and use routes only
+            routes: {
+              '/': (context) => appProvider.isLoggedIn ? HomeScreen() : LoginScreen(),
+              '/home_screen': (context) => HomeScreen(), // Match your bottom_nav route name
+              '/events_screen': (context) => EventsScreen(),
+              '/clubs_screen': (context) => ClubsScreen(),
+              '/profile_screen': (context) => ProfileScreen(),
+              '/login_screen': (context) => LoginScreen(),
+            },
+            
+            // Handle unknown routes
+            onUnknownRoute: (settings) {
+              return MaterialPageRoute(
+                builder: (context) => appProvider.isLoggedIn ? HomeScreen() : LoginScreen(),
+              );
+            },
+            
             debugShowCheckedModeBanner: false,
           );
         },
