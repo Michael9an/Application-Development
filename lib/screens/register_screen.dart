@@ -55,10 +55,8 @@ class RegisterScreen extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Successfully registered for ${event.name}!')),
-                  );
-                },
+                  _showRegistrationForm(context);
+                  },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 ),
@@ -68,6 +66,80 @@ class RegisterScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+  // --- Registration Form Dialog ---
+  void _showRegistrationForm(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController phoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Register for ${event.name}'),
+          content: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: 'Full Name'),
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter your name' : null,
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) =>
+                    value == null || !value.contains('@') || !value.contains('.') ? 'Enter a valid email' : null,
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    controller: phoneController,
+                    decoration: InputDecoration(labelText: 'Phone Number'),
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Enter your phone number';
+                      } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                        return 'Phone number must contain only digits';
+                      }
+                      return null;
+                    }
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Successfully registered for ${event.name}!'),
+                    ),
+                  );
+                }
+              },
+              child: Text('Submit'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
