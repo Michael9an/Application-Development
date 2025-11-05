@@ -6,6 +6,7 @@ import 'screens/events_screen.dart';
 import 'screens/clubs_screen.dart';  
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/report_event_screen.dart';
 import 'utils/theme.dart';
 
 void main() {
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
               '/events_screen': (context) => EventsScreen(),
               '/clubs_screen': (context) => ClubsScreen(),
               '/profile_screen': (context) => ProfileScreen(),
+              '/report_event': (context) => const ReportEventScreen(),
               '/login_screen': (context) => LoginScreen(),
             },
             

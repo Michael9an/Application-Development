@@ -9,7 +9,7 @@ class BottomNav extends StatelessWidget {
 
   switch (index) {
     case 0:
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, '/home_screen', (route) => false);
       break;
     case 1:
       Navigator.pushNamedAndRemoveUntil(context, '/events_screen', (route) => false);
@@ -31,9 +31,9 @@ class BottomNav extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       selectedItemColor: Theme.of(context).primaryColor,
       unselectedItemColor: const Color.fromARGB(255, 83, 82, 82),
-      selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
-      unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
-      items: [
+      selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+      items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Clubs'),
