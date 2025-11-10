@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart';
 
+import 'firebase_init.dart';
+
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
@@ -11,6 +13,12 @@ class StorageService {
     String eventId, {
     void Function(double progress)? onProgress,
   }) async {
+    // Ensure Firebase is initialized before attempting Storage operations.
+    final initialized = await ensureFirebaseInitialized(timeout: Duration(seconds: 10));
+    if (!initialized) {
+      print('uploadEventImage: Firebase not initialized within timeout');
+      return null;
+    }
     try {
       // Check file size first
       final fileSize = await imageFile.length();
@@ -93,6 +101,42 @@ class StorageService {
     } finally {
       // Ensure we clean up resources
       onProgress?.call(0);
+    }
+  }
+
+  /// Resolve a stored bannerUrl into a usable HTTPS download URL.
+  ///
+  /// Accepts:
+  /// - full HTTPS URLs (returned as-is)
+  /// - `gs://...` storage URLs (converted via `refFromURL().getDownloadURL()`)
+  /// - storage-relative paths like `events/<id>/file.jpg` (resolved with `ref(path).getDownloadURL()`)
+  /// - local file paths starting with `/` are returned as-is (for Image.file)
+  Future<String?> resolveImageUrl(String? storedUrl, {Duration initTimeout = const Duration(seconds: 10)}) async {
+    if (storedUrl == null || storedUrl.isEmpty) return null;
+
+    // Local file path -> return as-is for Image.file
+    if (storedUrl.startsWith('/')) return storedUrl;
+
+    // HTTPS already usable
+    if (storedUrl.startsWith('http')) return storedUrl;
+
+    // Ensure Firebase initialized before trying to talk to storage
+    final ok = await ensureFirebaseInitialized(timeout: initTimeout);
+    if (!ok) return null;
+
+    try {
+      // gs:// style URL
+      if (storedUrl.startsWith('gs://')) {
+        final ref = FirebaseStorage.instance.refFromURL(storedUrl);
+        return await ref.getDownloadURL();
+      }
+
+      // Otherwise treat as a storage path (e.g. events/1234/xyz.jpg)
+      final ref = FirebaseStorage.instance.ref(storedUrl);
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('resolveImageUrl: failed to resolve $storedUrl -> $e');
+      return null;
     }
   }
 

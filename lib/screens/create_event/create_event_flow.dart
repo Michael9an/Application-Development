@@ -8,6 +8,7 @@ import 'event_overview_page.dart';
 import '../../models/event.dart';
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/firebase_init.dart';
 
 class CreateEventFlow extends StatefulWidget {
   const CreateEventFlow({super.key});
@@ -44,9 +45,6 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
       publishTime: DateTime.now().millisecondsSinceEpoch.toString(),
       createdAt: DateTime.now(),
     );
-
-    // pages will be built dynamically in build() so they always receive
-    // the latest `_eventData` value.
   }
 
   void _goToPage(int page) {
@@ -57,6 +55,19 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
 
   void _submitEvent() async {
     if (!mounted) return;
+
+    // Ensure Firebase is initialized (short timeout) before starting uploads
+    final initOk = await ensureFirebaseInitialized(timeout: Duration(seconds: 10));
+    if (!initOk) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to connect to Firebase. Please try again later.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     // Show submission dialog with progress tracking
     final progressNotifier = ValueNotifier<String>('Creating event...');

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:async';
-import 'firebase_options.dart';
+import 'services/firebase_init.dart';
 import 'providers/app_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/events_screen.dart';
@@ -13,58 +9,15 @@ import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
 import 'utils/theme.dart';
 
-Future<void> initializeFirebase() async {
-  try {
-    // Initialize Firebase first
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform, 
-    );
-    print('Firebase initialized successfully');
-    
-    // Configure Firebase Storage with shorter timeouts to prevent ANR
-    FirebaseStorage.instance.setMaxUploadRetryTime(const Duration(seconds: 15));
-    FirebaseStorage.instance.setMaxOperationRetryTime(const Duration(seconds: 15));
-    print('Firebase Storage configured successfully');
-    
-    // Initialize Firestore settings with smaller cache
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: 10485760, // 10 MB cache
-    );
-    
-    // Quick connection checks with timeouts
-    await Future.wait([
-      FirebaseFirestore.instance.collection('test').doc('test').get()
-        .timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => throw TimeoutException('Firestore connection timeout'),
-        )
-        .then((_) => print('Firestore connection verified'))
-        .catchError((e) => print('Firestore check failed: $e')),
-        
-      FirebaseStorage.instance.ref().child('test').getMetadata()
-        .timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => throw TimeoutException('Storage connection timeout'),
-        )
-        .then((_) => print('Storage connection verified'))
-        .catchError((e) => print('Storage check failed: $e')),
-    ], eagerError: false);
-    
-  } catch (e) {
-    print('Firebase initialization error: $e');
-    // Continue with app launch, services will retry connection as needed
-  }
-}
-
 void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase in the background
-  initializeFirebase().catchError((e) => print('Background init error: $e'));
-  
-  // Launch app immediately without waiting
+
+  // Start Firebase initialization in background. use service in lib/services/firebase_init.dart
+  safeInitializeFirebase().catchError((e) => print('safeInitializeFirebase error: $e'));
+
+  // Launch app immediately without waiting; code that needs Firebase should
+  // call ensureFirebaseInitialized() to wait for init to complete.
   runApp(const MyApp());
 }
 
@@ -83,7 +36,7 @@ class MyApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: appProvider.themeMode,
             
-            // Error handling for the entire app
+            // Error handling for the entire app. Use a safe builder: child may be null
             builder: (context, child) {
               ErrorWidget.builder = (FlutterErrorDetails details) {
                 return Material(
@@ -96,7 +49,7 @@ class MyApp extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           'An error occurred',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context).textTheme.titleLarge ?? const TextStyle(fontSize: 18),
                         ),
                         const SizedBox(height: 8),
                         TextButton(
@@ -108,13 +61,14 @@ class MyApp extends StatelessWidget {
                   ),
                 );
               };
-              
-              // Add error boundary for input widgets
+
+              // Add error boundary for input widgets; child may be null on first build
+              final safeChild = child ?? const SizedBox.shrink();
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   textScaleFactor: 1.0, // Prevent text scaling issues
                 ),
-                child: child!,
+                child: safeChild,
               );
             },
             

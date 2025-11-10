@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import '../services/storage_service.dart';
 import '../widgets/bottom_nav.dart';
 import '../models/event.dart';
 import '../services/firestore_service.dart';
@@ -131,27 +132,59 @@ class EventsScreen extends StatelessWidget {
       );
     }
 
-    // For network images (Firebase Storage URLs)
-    return Image.network(
-      imageUrl,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          color: Colors.grey[200],
-          child: Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                  : null,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-          ),
+    // For network or storage images, attempt to resolve them first (may be a
+    // gs:// URL or a storage path saved in Firestore). Use StorageService to
+    // convert to a usable https URL if needed.
+    final storageService = StorageService();
+    return FutureBuilder<String?>(
+      future: storageService.resolveImageUrl(imageUrl),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: Colors.grey[200],
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final resolved = snap.data;
+        if (resolved == null || resolved.isEmpty) {
+          return _buildErrorImage();
+        }
+
+        // If the resolver returned a local path, show it as a file.
+        if (resolved.startsWith('/')) {
+          return Image.file(
+            File(resolved),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading resolved local image: $error');
+              return _buildErrorImage();
+            },
+          );
+        }
+
+        return Image.network(
+          resolved,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              color: Colors.grey[200],
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      : null,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            print('Error loading network image: $error');
+            return _buildErrorImage();
+          },
         );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        print('Error loading network image: $error');
-        return _buildErrorImage();
       },
     );
   }

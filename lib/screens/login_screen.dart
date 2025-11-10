@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Club Events',
+                'Event Mate',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 40),
