@@ -9,7 +9,7 @@ class UserClub {
     required this.id,
     required this.name,
     required this.imageUrl,
-  });md
+  });
 
   factory UserClub.fromJson(Map<String, dynamic> json) {
     return UserClub(
