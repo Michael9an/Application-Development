@@ -9,7 +9,7 @@ class UserClub {
     required this.id,
     required this.name,
     required this.imageUrl,
-  });
+  });md
 
   factory UserClub.fromJson(Map<String, dynamic> json) {
     return UserClub(
@@ -27,7 +27,7 @@ class UserClub {
 }
 
 class UserModel {
-  final String id;
+  final String matricNo;
   final String email;
   final String name;
   final String role;
@@ -35,7 +35,7 @@ class UserModel {
   final List<UserClub> clubs;
 
   UserModel({
-    required this.id,
+    required this.matricNo,
     required this.email,
     required this.name,
     required this.role,
@@ -45,7 +45,7 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
+      matricNo: json['matricNo'],
       email: json['email'],
       name: json['name'],
       role: json['role'],
@@ -57,7 +57,7 @@ class UserModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
+    'matricNo': matricNo,
     'email': email,
     'name': name,
     'role': role,

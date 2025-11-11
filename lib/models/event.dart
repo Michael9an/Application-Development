@@ -10,6 +10,7 @@ class EventModel{
   final String clubId;
   final String clubName;
   final String clubImageUrl;
+  final double price;
 
   DateTime get dateTime {
     final timestamp = int.parse(date);
@@ -38,6 +39,7 @@ class EventModel{
     required this.clubId,
     required this.clubName,
     required this.clubImageUrl,
+    required this.price,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class EventModel{
       clubId: json['club']['id'],
       clubName: json['club']['name'],
       clubImageUrl: json['club']['imageUrl'],
+      price: json['price'],
     );
   }
 
