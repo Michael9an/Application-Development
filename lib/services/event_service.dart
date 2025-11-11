@@ -16,6 +16,7 @@ class EventService {
         clubId: '1',
         clubName: 'Music Club',
         clubImageUrl: '',
+        price: 0,
       ),
       EventModel(
         id: '2',
@@ -27,6 +28,7 @@ class EventService {
         clubId: '2',
         clubName: 'Tech Club',
         clubImageUrl: '',
+        price: 10,
       ),
     ];
   }

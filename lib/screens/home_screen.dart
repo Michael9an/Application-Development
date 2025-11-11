@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-//import 'package:provider/provider.dart';
 import '../widgets/event_card.dart';
 import '../widgets/bottom_nav.dart';
 import '../services/event_service.dart';
 import '../models/event.dart';
+import '../models/user.dart';
 import '../screens/register_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +15,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final EventService _eventService = EventService();
   List<EventModel> _events = [];
   bool _isLoading = true;
+
+  // Temporary mock user (replace with actual logged-in user later)
+  final UserModel _currentUser = UserModel(
+    matricNo: 'A123456',
+    email: 'testuser@example.com',
+    name: 'Test User',
+    role: 'Student',
+    photoUrl: 'https://via.placeholder.com/150',
+    clubs: [],
+  );
 
   @override
   void initState() {
@@ -43,29 +53,32 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-              onRefresh: _loadEvents,
-              child: ListView.builder(
-                padding: EdgeInsets.all(16),
-                itemCount: _events.length,
-                itemBuilder: (context, index) {
-                  final event = _events[index];
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => RegisterScreen(event: event),
-                          ),
-                        );
-                      },
-                    child: EventCard(event: event),
+        onRefresh: _loadEvents,
+        child: ListView.builder(
+          padding: EdgeInsets.all(16),
+          itemCount: _events.length,
+          itemBuilder: (context, index) {
+            final event = _events[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RegisterScreen(
+                        event: event,
+                        user: _currentUser,
+                      ),
                     ),
                   );
                 },
+                child: EventCard(event: event),
               ),
-            ),
+            );
+          },
+        ),
+      ),
       bottomNavigationBar: BottomNav(selectedIndex: 0),
     );
   }

@@ -6,7 +6,7 @@ class AuthService {
     await Future.delayed(Duration(seconds: 1));
     
     return UserModel(
-      id: '1',
+      matricNo: '1',
       email: email,
       name: 'Test User',
       role: 'user',

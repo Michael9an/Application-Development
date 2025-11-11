@@ -7,7 +7,7 @@ class ClubService {
     await Future.delayed(Duration(seconds: 1));
     
     final mockUser = UserModel(
-      id: '1',
+      matricNo: '1',
       email: 'admin@club.com',
       name: 'Club Admin',
       role: 'admin',
