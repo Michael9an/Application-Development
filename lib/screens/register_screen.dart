@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import '../models/event.dart';
+import '../models/user.dart';
+import 'payment_gateway_screen.dart';
 
 class RegisterScreen extends StatelessWidget {
   final EventModel event;
+  final UserModel user;
 
-  const RegisterScreen({Key? key, required this.event}) : super(key: key);
+  const RegisterScreen({
+    Key? key,
+    required this.event,
+    required this.user,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register for ${event.name}')),
+      appBar: AppBar(title: Text('Event Overview')),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -19,7 +26,7 @@ class RegisterScreen extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.event, color: Colors.blue, size: 56),
+                Icon(Icons.event, color: Colors.orange, size: 56),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -37,11 +44,11 @@ class RegisterScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'Price: RM ',
+                        'Price: RM ${event.price}',
                         style: Theme.of(context)
                             .textTheme
                             .bodyLarge
-                            ?.copyWith(color: Colors.green[700]),
+                            ?.copyWith(color: Colors.black),
                       ),
                     ],
                   ),
@@ -54,13 +61,16 @@ class RegisterScreen extends StatelessWidget {
             // --- Register Button ---
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  _showRegistrationForm(context);
-                  },
+                onPressed: () => _showRegistrationForm(context),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 ),
-                child: Text('Register Now'),
+                child: Text('Register',style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -68,18 +78,22 @@ class RegisterScreen extends StatelessWidget {
       ),
     );
   }
+
   // --- Registration Form Dialog ---
   void _showRegistrationForm(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
+    final nameController = TextEditingController();
+    final matricNoController = TextEditingController();
+    final phoneController = TextEditingController();
+    final facultyController = TextEditingController();
+    final emailController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Register for ${event.name}'),
+          title: Center(child: Text('Participant Details')),
+          actionsAlignment: MainAxisAlignment.center,
           content: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -94,11 +108,10 @@ class RegisterScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   TextFormField(
-                    controller: emailController,
-                    decoration: InputDecoration(labelText: 'Email'),
-                    keyboardType: TextInputType.emailAddress,
+                    controller: matricNoController,
+                    decoration: InputDecoration(labelText: 'Matric No'),
                     validator: (value) =>
-                    value == null || !value.contains('@') || !value.contains('.') ? 'Enter a valid email' : null,
+                    value == null || value.isEmpty ? 'Enter your Matric No' : null,
                   ),
                   SizedBox(height: 12),
                   TextFormField(
@@ -112,7 +125,23 @@ class RegisterScreen extends StatelessWidget {
                         return 'Phone number must contain only digits';
                       }
                       return null;
-                    }
+                    },
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    controller: facultyController,
+                    decoration: InputDecoration(labelText: 'Faculty'),
+                    validator: (value) =>value == null || value.isEmpty ? 'Enter your name' : null,
+                  ),
+                  SizedBox(height: 12),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) =>
+                    value == null || !value.contains('@') || !value.contains('.')
+                        ? 'Enter a valid email'
+                        : null,
                   ),
                 ],
               ),
@@ -121,21 +150,34 @@ class RegisterScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.orange,
+                side: BorderSide(color: Colors.orange),
+              ),
               child: Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Successfully registered for ${event.name}!'),
+
+                  // Navigate to Payment Gateway
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PaymentScreen(
+                        event: event,
+                        user: user,
+
+                      ),
                     ),
                   );
                 }
               },
-              child: Text('Submit'),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white),
+              child: Text('Register'),
             ),
           ],
         );
