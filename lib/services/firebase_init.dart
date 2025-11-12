@@ -1,62 +1,104 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../firebase_options.dart';
 
-/// Completer that completes when Firebase init finishes (true = success)
-final Completer<bool> firebaseInitCompleter = Completer<bool>();
-
 /// Initialize Firebase safely across platforms.
-///
-/// - On web we require the `DefaultFirebaseOptions`.
-/// - On mobile/desktop we try native initialization first and fall back to
-///   `DefaultFirebaseOptions` if native config isn't present.
-Future<void> safeInitializeFirebase() async {
+Future<bool> safeInitializeFirebase() async {
   try {
+    print('Initializing Firebase...');
+    
+    // Check if Firebase is already initialized
+    try {
+      Firebase.app();
+      print('Firebase already initialized');
+      return true;
+    } catch (e) {
+      print('Firebase not initialized, proceeding with initialization...');
+    }
+    
     if (kIsWeb) {
+      print('Initializing for Web platform');
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     } else {
-      try {
-        // Try native config (google-services.json / GoogleService-Info.plist)
-        await Firebase.initializeApp();
-      } catch (_) {
-        // Fallback to generated options if native config missing
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-      }
+      print('Initializing for Mobile platform');
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
     }
 
-    // Configure storage retry timings (no await, these are void)
-    FirebaseStorage.instance.setMaxUploadRetryTime(const Duration(seconds: 15));
-    FirebaseStorage.instance.setMaxOperationRetryTime(const Duration(seconds: 15));
+    // Test Firebase services with timeout
+    print('Testing Firebase Auth...');
+    final auth = FirebaseAuth.instance;
+    print('Firebase Auth initialized: ${auth.app.name}');
 
-    // Configure Firestore with a reasonable cache to reduce long ops
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: 10485760, // 10 MB
-    );
+    print('Testing Firestore...');
+    final firestore = FirebaseFirestore.instance;
+    print('Firestore initialized: ${firestore.app.name}');
 
-    if (!firebaseInitCompleter.isCompleted) firebaseInitCompleter.complete(true);
-    print('safeInitializeFirebase: Firebase initialized successfully');
-  } catch (e, st) {
-    if (!firebaseInitCompleter.isCompleted) firebaseInitCompleter.complete(false);
-    print('safeInitializeFirebase: Firebase init error: $e\n$st');
+    print('Testing Firebase Storage...');
+    final storage = FirebaseStorage.instance;
+    print('Firebase Storage initialized: ${storage.app.name}');
+
+    // Configure settings with error handling
+    try {
+      FirebaseFirestore.instance.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+    } catch (e) {
+      print('Warning: Could not configure Firestore settings: $e');
+    }
+
+    try {
+      FirebaseStorage.instance.setMaxUploadRetryTime(const Duration(seconds: 15));
+      FirebaseStorage.instance.setMaxOperationRetryTime(const Duration(seconds: 15));
+    } catch (e) {
+      print('Warning: Could not configure Storage settings: $e');
+    }
+
+    print('✅ Firebase initialization completed successfully');
+    return true;
+  } catch (e, stackTrace) {
+    print('❌ Firebase initialization failed: $e');
+    print('Stack trace: $stackTrace');
+    return false;
   }
 }
 
-/// Wait for Firebase initialization to finish (with timeout).
-/// Returns true on success, false on failure/timeout.
+/// Simple initialization check
+Future<bool> isFirebaseInitialized() async {
+  try {
+    // Try to access a Firebase service to check if it's initialized
+    final auth = FirebaseAuth.instance;
+    final user = auth.currentUser; // This will throw if not initialized
+    return auth.app != null;
+  } catch (e) {
+    return false;
+  }
+}
+
+/// Legacy function for backward compatibility
 Future<bool> ensureFirebaseInitialized({Duration timeout = const Duration(seconds: 10)}) async {
   try {
-    return await firebaseInitCompleter.future.timeout(timeout, onTimeout: () => false);
-  } catch (_) {
+    // First check if already initialized
+    if (await isFirebaseInitialized()) {
+      return true;
+    }
+    
+    // If not, try to initialize with timeout
+    return await safeInitializeFirebase().timeout(timeout, onTimeout: () {
+      print('Firebase initialization timed out after $timeout');
+      return false;
+    });
+  } catch (e) {
+    print('ensureFirebaseInitialized error: $e');
     return false;
   }
 }

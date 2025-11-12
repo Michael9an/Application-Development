@@ -1,5 +1,6 @@
+// event_pricing_page.dart
 import 'package:flutter/material.dart';
-import '../../models/event.dart';
+import '../../../models/event.dart';
 
 class EventPricingPage extends StatefulWidget {
   final EventModel eventData;
@@ -30,8 +31,16 @@ class _EventPricingPageState extends State<EventPricingPage> {
     super.initState();
     _localEvent = widget.eventData;
     _isFree = _localEvent.isFree;
-    _priceController.text = _localEvent.price.toString();
+    _priceController.text = _localEvent.price == 0 ? '' : _localEvent.price.toString();
     _refundPolicyController.text = _localEvent.refundPolicy ?? '';
+    
+    // Set publish time from event data if exists
+    if (_localEvent.publishTime != null) {
+      final timestamp = int.tryParse(_localEvent.publishTime!);
+      if (timestamp != null) {
+        _publishTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      }
+    }
   }
 
   Future<void> _selectPublishTime() async {
@@ -64,10 +73,12 @@ class _EventPricingPageState extends State<EventPricingPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       
+      final price = _isFree ? 0.0 : double.tryParse(_priceController.text) ?? 0.0;
+      
       final updated = _localEvent.copyWith(
         isFree: _isFree,
-        price: _isFree ? 0.0 : double.tryParse(_priceController.text) ?? 0.0,
-        refundPolicy: _refundPolicyController.text,
+        price: price,
+        refundPolicy: _refundPolicyController.text.isEmpty ? null : _refundPolicyController.text,
         publishTime: _publishTime.millisecondsSinceEpoch.toString(),
       );
 
@@ -111,6 +122,9 @@ class _EventPricingPageState extends State<EventPricingPage> {
                       onChanged: (value) {
                         setState(() {
                           _isFree = value;
+                          if (value) {
+                            _priceController.text = '';
+                          }
                         });
                       },
                     ),
@@ -134,6 +148,10 @@ class _EventPricingPageState extends State<EventPricingPage> {
                 validator: (value) {
                   if (!_isFree && (value == null || value.isEmpty)) {
                     return 'Please enter ticket price';
+                  }
+                  final price = double.tryParse(value ?? '');
+                  if (!_isFree && (price == null || price <= 0)) {
+                    return 'Please enter a valid price';
                   }
                   return null;
                 },

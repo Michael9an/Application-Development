@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../screens/home_screen.dart';
+import '../screens/shared/home_screen.dart';
 import '../screens/events_screen.dart';
-import '../screens/clubs_screen.dart';
-import '../screens/profile_screen.dart';
+import '../screens/shared/clubs_screen.dart';
+import '../screens/shared/profile_screen.dart';
 
 class BottomNav extends StatelessWidget {
   final int selectedIndex;

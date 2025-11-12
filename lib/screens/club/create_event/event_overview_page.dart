@@ -1,15 +1,18 @@
+// event_overview_page.dart
 import 'package:flutter/material.dart';
-import '../../models/event.dart';
+import '../../../models/event.dart';
 
 class EventOverviewPage extends StatefulWidget {
   final EventModel eventData;
-  final VoidCallback onSubmit;
+  final VoidCallback? onSubmit;
   final VoidCallback onBack;
+  final bool isSubmitting;
 
   const EventOverviewPage({super.key, 
     required this.eventData,
     required this.onSubmit,
     required this.onBack,
+    this.isSubmitting = false,
   });
 
   @override
@@ -17,34 +20,88 @@ class EventOverviewPage extends StatefulWidget {
 }
 
 class _EventOverviewPageState extends State<EventOverviewPage> {
+  String _formatDateTime(String? timestamp) {
+    if (timestamp == null) return 'Not set';
+    
+    final milliseconds = int.tryParse(timestamp);
+    if (milliseconds == null) return 'Invalid date';
+    
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(16),
       child: Column(
         children: [
+          // Club Header
+          Card(
+            color: Colors.blue[50],
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundImage: widget.eventData.clubImageUrl != null 
+                        ? NetworkImage(widget.eventData.clubImageUrl!)
+                        : null,
+                    child: widget.eventData.clubImageUrl == null 
+                        ? Icon(Icons.group, size: 24)
+                        : null,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Club',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          widget.eventData.clubName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: 16),
+
           Expanded(
             child: ListView(
               children: [
                 _buildSectionHeader('Event Details'),
                 _buildInfoCard(
                   title: 'Event Name',
-                  value: widget.eventData.name,
+                  value: widget.eventData.name.isEmpty ? 'Not provided' : widget.eventData.name,
                   icon: Icons.event,
                 ),
                 _buildInfoCard(
                   title: 'Description',
-                  value: widget.eventData.description,
+                  value: widget.eventData.description.isEmpty ? 'Not provided' : widget.eventData.description,
                   icon: Icons.description,
                 ),
                 _buildInfoCard(
                   title: 'Date & Time',
-                  value: '${widget.eventData.formattedDate} at ${widget.eventData.formattedTime}',
+                  value: _formatDateTime(widget.eventData.date),
                   icon: Icons.calendar_today,
                 ),
                 _buildInfoCard(
                   title: 'Location',
-                  value: widget.eventData.location,
+                  value: widget.eventData.location.isEmpty ? 'Not provided' : widget.eventData.location,
                   icon: Icons.location_on,
                 ),
                 _buildInfoCard(
@@ -75,7 +132,7 @@ class _EventOverviewPageState extends State<EventOverviewPage> {
                   ),
                 _buildInfoCard(
                   title: 'Publish Time',
-                  value: _formatPublishTime(),
+                  value: _formatDateTime(widget.eventData.publishTime),
                   icon: Icons.schedule,
                 ),
               ],
@@ -88,7 +145,7 @@ class _EventOverviewPageState extends State<EventOverviewPage> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: widget.onBack,
+                  onPressed: widget.isSubmitting ? null : widget.onBack,
                   style: OutlinedButton.styleFrom(
                     minimumSize: Size(0, 50),
                   ),
@@ -98,12 +155,14 @@ class _EventOverviewPageState extends State<EventOverviewPage> {
               SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: widget.onSubmit,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(0, 50),
-                    backgroundColor: Colors.green,
-                  ),
-                  child: Text('Create Event'),
+                  onPressed: widget.isSubmitting ? null : widget.onSubmit,
+                  child: widget.isSubmitting 
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text('Create Event'),
                 ),
               ),
             ],
@@ -137,18 +196,8 @@ class _EventOverviewPageState extends State<EventOverviewPage> {
       child: ListTile(
         leading: Icon(icon, color: Colors.blue),
         title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(value.isEmpty ? 'Not provided' : value),
+        subtitle: Text(value),
       ),
     );
-  }
-
-  String _formatPublishTime() {
-    if (widget.eventData.publishTime == null) return 'Immediately';
-    
-    final timestamp = int.tryParse(widget.eventData.publishTime!);
-    if (timestamp == null) return 'Immediately';
-    
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

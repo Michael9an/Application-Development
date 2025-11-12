@@ -4,8 +4,9 @@ import 'dart:io';
 import '../services/storage_service.dart';
 import '../widgets/bottom_nav.dart';
 import '../models/event.dart';
+import '../models/club.dart';
 import '../services/firestore_service.dart';
-import 'create_event/create_event_flow.dart';
+import 'club/create_event/create_event_flow.dart';
 
 class EventsScreen extends StatelessWidget {
   const EventsScreen({super.key});
@@ -20,11 +21,74 @@ class EventsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CreateEventFlow()),
+            onPressed: () async {
+              final firestoreService = FirestoreService();
+              final clubs = await firestoreService.getClubs().first;
+              
+              if (!context.mounted) return;
+
+              if (clubs.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('You need to be a member of a club to create events'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+
+              // If there's only one club, use it directly
+              if (clubs.length == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateEventFlow(club: clubs.first),
+                  ),
+                );
+                return;
+              }
+
+              // If there are multiple clubs, show a dialog to choose
+              final selectedClub = await showDialog<Club>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Select Club'),
+                    content: SizedBox(
+                      width: double.maxFinite,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: clubs.length,
+                        itemBuilder: (context, index) {
+                          final club = clubs[index];
+                          return ListTile(
+                            leading: club.imageUrl.isNotEmpty
+                              ? CircleAvatar(
+                                  backgroundImage: NetworkImage(club.imageUrl),
+                                )
+                              : CircleAvatar(
+                                  child: Text(club.name[0]),
+                                ),
+                            title: Text(club.name),
+                            onTap: () {
+                              Navigator.pop(context, club);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
               );
+
+              if (selectedClub != null && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateEventFlow(club: selectedClub),
+                  ),
+                );
+              }
             },
           ),
         ],
@@ -73,11 +137,72 @@ class EventsScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CreateEventFlow()),
+                    onPressed: () async {
+                      final firestoreService = FirestoreService();
+                      final clubs = await firestoreService.getClubs().first;
+                      
+                      if (!context.mounted) return;
+
+                      if (clubs.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('You need to be a member of a club to create events'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (clubs.length == 1) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateEventFlow(club: clubs.first),
+                          ),
+                        );
+                        return;
+                      }
+
+                      final selectedClub = await showDialog<Club>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Select Club'),
+                            content: SizedBox(
+                              width: double.maxFinite,
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: clubs.length,
+                                itemBuilder: (context, index) {
+                                  final club = clubs[index];
+                                  return ListTile(
+                                    leading: club.imageUrl.isNotEmpty
+                                      ? CircleAvatar(
+                                          backgroundImage: NetworkImage(club.imageUrl),
+                                        )
+                                      : CircleAvatar(
+                                          child: Text(club.name[0]),
+                                        ),
+                                    title: Text(club.name),
+                                    onTap: () {
+                                      Navigator.pop(context, club);
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
                       );
+
+                      if (selectedClub != null && context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateEventFlow(club: selectedClub),
+                          ),
+                        );
+                      }
                     },
                     child: Text('Create Event'),
                   ),

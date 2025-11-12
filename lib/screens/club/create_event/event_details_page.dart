@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import '../../models/event.dart';
+import '../../../models/event.dart';
 
 class EventDetailsPage extends StatefulWidget {
   final EventModel eventData;
@@ -36,6 +36,16 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     _descriptionController.text = _localEvent.description;
     _locationController.text = _localEvent.location;
     _maxAttendeesController.text = _localEvent.maxAttendees.toString();
+    
+    // Set initial date/time from event data if exists
+    if (_localEvent.date != null) {
+      final timestamp = int.tryParse(_localEvent.date!);
+      if (timestamp != null) {
+        final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+        _selectedDate = dateTime;
+        _selectedTime = TimeOfDay.fromDateTime(dateTime);
+      }
+    }
   }
 
   Future<void> _selectDate() async {
@@ -65,7 +75,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Future<void> _pickImage() async {
-    try {
+  try {
       // Show loading indicator while compressing
       showDialog(
         context: context,
@@ -91,9 +101,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 800, // Reduced from 1200
-        maxHeight: 600, // Reduced from 800
-        imageQuality: 70, // Reduced from 80 for smaller file size
+        maxWidth: 800,
+        maxHeight: 600,
+        imageQuality: 70,
       );
 
       // Close loading dialog
@@ -115,6 +125,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           return;
         }
 
+        // Store the local path temporarily for display
         setState(() {
           _localEvent = _localEvent.copyWith(bannerUrl: image.path);
         });
@@ -132,7 +143,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       );
     }
   }
-
   void _saveAndContinue() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -166,6 +176,50 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         key: _formKey,
         child: ListView(
           children: [
+            // Club Info Card
+            Card(
+              color: Colors.blue[50],
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundImage: _localEvent.clubImageUrl != null 
+                          ? NetworkImage(_localEvent.clubImageUrl!)
+                          : null,
+                      child: _localEvent.clubImageUrl == null 
+                          ? Icon(Icons.group, size: 24)
+                          : null,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Creating event for',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            _localEvent.clubName,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+
             // Image Upload
             GestureDetector(
               onTap: _pickImage,
@@ -176,7 +230,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey[300]!),
                 ),
-        child: (_localEvent.bannerUrl == null || _localEvent.bannerUrl!.isEmpty)
+                child: (_localEvent.bannerUrl == null || _localEvent.bannerUrl!.isEmpty)
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
