@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/event.dart';
+import '../screens/event_detail_screen.dart';
 
 class EventCard extends StatelessWidget {
   final EventModel event;
@@ -8,26 +9,36 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.blue.shade100,
-            borderRadius: BorderRadius.circular(8),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventDetailScreen(event: event),
           ),
-          child: Icon(Icons.event, color: Colors.blue),
+        );
+      },
+      child: Card(
+        child: ListTile(
+          leading: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.event, color: Colors.blue),
+          ),
+          title: Text(event.name),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(event.clubName),
+              Text('${event.formattedDate} • ${event.location}'),
+            ],
+          ),
+          trailing: Icon(Icons.arrow_forward_ios, size: 16),
         ),
-        title: Text(event.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(event.clubName),
-            Text('${event.formattedDate} • ${event.location}'),
-          ],
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16),
       ),
     );
   }
