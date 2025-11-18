@@ -61,52 +61,51 @@ class EventModel {
     this.contactPhone = '',
   });
 
-  factory EventModel.fromFirestore(Map<String, dynamic> data) {
-    // Helper function to convert Firestore Timestamp to DateTime
-    DateTime? _convertToDateTime(dynamic timestamp) {
-      if (timestamp == null) return null;
-      if (timestamp is Timestamp) {
-        return timestamp.toDate();
-      } else if (timestamp is int) {
-        return DateTime.fromMillisecondsSinceEpoch(timestamp);
-      } else if (timestamp is String) {
-        return DateTime.tryParse(timestamp);
-      }
-      return null;
+  factory EventModel.fromFirestore(Map<String, dynamic> data, String documentId) {
+  // Helper function to convert Firestore Timestamp to DateTime
+  DateTime? _convertToDateTime(dynamic timestamp) {
+    if (timestamp == null) return null;
+    if (timestamp is Timestamp) {
+      return timestamp.toDate();
+    } else if (timestamp is int) {
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } else if (timestamp is String) {
+      return DateTime.tryParse(timestamp);
     }
-
-    return EventModel(
-      id: data['id'] ?? '',
-      name: data['name'] ?? '',
-      description: data['description'] ?? '',
-      date: data['date'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      startTime: data['startTime'] ?? '',
-      endTime: data['endTime'] ?? '',
-      bannerUrl: data['bannerUrl'],
-      location: data['location'] ?? '',
-      clubId: data['clubId'] ?? '',
-      clubName: data['clubName'] ?? '',
-      clubImageUrl: data['clubImageUrl'],
-      maxAttendees: data['maxAttendees'] ?? 0,
-      price: (data['price'] ?? 0.0).toDouble(),
-      isFree: data['isFree'] ?? true,
-      refundPolicy: data['refundPolicy'],
-      publishTime: data['publishTime'],
-      createdAt: _convertToDateTime(data['createdAt']),
-      status: data['status'] ?? 'upcoming',
-      attendees: List<String>.from(data['attendees'] ?? []),
-      waitlist: List<String>.from(data['waitlist'] ?? []),
-      views: data['views'] ?? 0,
-      shares: data['shares'] ?? 0,
-      isCancelled: data['isCancelled'] ?? false,
-      updatedAt: _convertToDateTime(data['updatedAt']),
-      category: data['category'] ?? 'General',
-      tags: List<String>.from(data['tags'] ?? []),
-      contactEmail: data['contactEmail'] ?? '',
-      contactPhone: data['contactPhone'] ?? '',
-    );
+    return null;
   }
 
+  return EventModel(
+    id: documentId, // Use the document ID instead of data['id']
+    name: data['name'] ?? '',
+    description: data['description'] ?? '',
+    date: data['date'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    startTime: data['startTime'] ?? '',
+    endTime: data['endTime'] ?? '',
+    bannerUrl: data['bannerUrl'],
+    location: data['location'] ?? '',
+    clubId: data['clubId'] ?? '',
+    clubName: data['clubName'] ?? '',
+    clubImageUrl: data['clubImageUrl'],
+    maxAttendees: data['maxAttendees'] ?? 0,
+    price: (data['price'] ?? 0.0).toDouble(),
+    isFree: data['isFree'] ?? true,
+    refundPolicy: data['refundPolicy'],
+    publishTime: data['publishTime'],
+    createdAt: _convertToDateTime(data['createdAt']),
+    status: data['status'] ?? 'upcoming',
+    attendees: List<String>.from(data['attendees'] ?? []),
+    waitlist: List<String>.from(data['waitlist'] ?? []),
+    views: data['views'] ?? 0,
+    shares: data['shares'] ?? 0,
+    isCancelled: data['isCancelled'] ?? false,
+    updatedAt: _convertToDateTime(data['updatedAt']),
+    category: data['category'] ?? 'General',
+    tags: List<String>.from(data['tags'] ?? []),
+    contactEmail: data['contactEmail'] ?? '',
+    contactPhone: data['contactPhone'] ?? '',
+  );
+}
   Map<String, dynamic> toFirestore() {
     // Helper function to convert DateTime to Firestore Timestamp
     dynamic _convertToTimestamp(DateTime? dateTime) {

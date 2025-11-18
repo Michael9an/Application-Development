@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: 40),
                   
-                  // Name field (only for registration)
+                  // Full Name - Registration
                   if (!_isLogin) ...[
                     TextFormField(
                       controller: _nameController,

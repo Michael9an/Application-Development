@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/role_based_bottom_nav.dart';
-import 'club_events_screen.dart'; // Add this import
+import 'club_events_screen.dart';
 import 'event_analytics.dart';
 import 'club_members.dart';
 import 'create_event/create_event_flow.dart';
@@ -23,7 +23,6 @@ class _ClubHomeScreenState extends State<ClubHomeScreen> {
 
   // Update screens to pass club data
   final List<Widget> _screens = [
-    // These will be updated when club data is loaded
     Center(child: CircularProgressIndicator()),
     Center(child: CircularProgressIndicator()),
     Center(child: CircularProgressIndicator()),
@@ -32,7 +31,7 @@ class _ClubHomeScreenState extends State<ClubHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _debugUserData(); // Add this
+    _debugUserData();
     _loadClubData();
   }
 
@@ -168,7 +167,9 @@ class _ClubHomeScreenState extends State<ClubHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isLoading ? 'Loading...' : 'Club Dashboard'),
+        title: _isLoading 
+            ? Text('Loading...')
+            : Text('${_currentClub?.name ?? "Club"} Dashboard'),
         actions: [
           // Create Event Button
           IconButton(
@@ -259,7 +260,7 @@ class _ClubHomeScreenState extends State<ClubHomeScreen> {
       return;
     }
 
-    // Navigate to create event flow - FIXED NAVIGATION
+    // Navigate to create event flow
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -271,7 +272,7 @@ class _ClubHomeScreenState extends State<ClubHomeScreen> {
     });
   }
 
-    void _debugUserData() {
+  void _debugUserData() {
     final appProvider = context.read<AppProvider>();
     final currentUser = appProvider.currentUser;
     

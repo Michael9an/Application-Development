@@ -15,7 +15,7 @@ class EventService {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => EventModel.fromFirestore(doc.data()))
+          .map((doc) => EventModel.fromFirestore(doc.data(), doc.id)) // Updated
           .toList();
     } catch (e) {
       print('Error getting events: $e');
@@ -28,7 +28,7 @@ class EventService {
     try {
       final doc = await _firestore.collection('events').doc(eventId).get();
       if (doc.exists) {
-        return EventModel.fromFirestore(doc.data()!);
+        return EventModel.fromFirestore(doc.data()!, doc.id); // Updated
       }
       return null;
     } catch (e) {
@@ -48,7 +48,7 @@ class EventService {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => EventModel.fromFirestore(doc.data()))
+          .map((doc) => EventModel.fromFirestore(doc.data(), doc.id)) // Updated
           .toList();
     } catch (e) {
       print('Error getting club events: $e');
@@ -71,7 +71,7 @@ class EventService {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => EventModel.fromFirestore(doc.data()))
+          .map((doc) => EventModel.fromFirestore(doc.data(), doc.id)) // Updated
           .toList();
     } catch (e) {
       print('Error getting upcoming events: $e');
@@ -94,7 +94,7 @@ class EventService {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => EventModel.fromFirestore(doc.data()))
+          .map((doc) => EventModel.fromFirestore(doc.data(), doc.id)) // Updated
           .toList();
     } catch (e) {
       print('Error getting popular events: $e');
@@ -234,8 +234,8 @@ class EventService {
 
       final events = <EventModel>{};
       
-      events.addAll(nameQuery.docs.map((doc) => EventModel.fromFirestore(doc.data())));
-      events.addAll(locationQuery.docs.map((doc) => EventModel.fromFirestore(doc.data())));
+      events.addAll(nameQuery.docs.map((doc) => EventModel.fromFirestore(doc.data(), doc.id))); // Updated
+      events.addAll(locationQuery.docs.map((doc) => EventModel.fromFirestore(doc.data(), doc.id))); // Updated
 
       return events.toList();
     } catch (e) {
@@ -260,7 +260,7 @@ class EventService {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => EventModel.fromFirestore(doc.data()))
+          .map((doc) => EventModel.fromFirestore(doc.data(), doc.id)) // Updated
           .toList();
     } catch (e) {
       print('Error getting events by category: $e');

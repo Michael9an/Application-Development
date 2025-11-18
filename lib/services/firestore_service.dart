@@ -7,7 +7,6 @@ import '../models/club.dart';
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Get all events
   Stream<List<EventModel>> getEvents() {
     return _firestore
         .collection('events')
@@ -15,12 +14,11 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        return EventModel.fromFirestore(doc.data());
+        return EventModel.fromFirestore(doc.data(), doc.id); // Pass doc.id as second parameter
       }).toList();
     });
   }
 
-  // Get events by club
   Stream<List<EventModel>> getEventsByClub(String clubId) {
     return _firestore
         .collection('events')
@@ -28,8 +26,8 @@ class FirestoreService {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return EventModel.fromFirestore(doc.data());
+        return snapshot.docs.map((doc) {
+        return EventModel.fromFirestore(doc.data(), doc.id); // Pass doc.id as second parameter
       }).toList();
     });
   }
